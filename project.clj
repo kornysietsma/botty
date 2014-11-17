@@ -1,4 +1,4 @@
-(defproject com.sietsma.korny/botty "0.1.0-SNAPSHOT"
+(defproject com.sietsma.korny/botty "0.1.0"
   :description "Basic IRC bot library for simple bots"
   :url "http://github.com/korny/botty"
   :license {:name "Do What The Fuck You Want To Public License (WTFPL)"
