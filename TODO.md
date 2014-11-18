@@ -1,5 +1,4 @@
-- get a real license!
-- allow for generic message matching, so bots can watch for more than just commands
+- documentation!
 - Ping/Pong, auto-reconnect for flakey networks
 - allow bots to leave / join a room
-
+- check - can tick/message handlers change config - i.e. altering the message regexps?

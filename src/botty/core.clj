@@ -40,13 +40,19 @@
   (get-in world [:config :botname]))
 
 (defn parse-command [{:keys [config] :as world} text target]
-  (prn text target)
-  (prn (str (cmd-prefix config) "(.*)"))
   (if (= (:botname config) target)
     (trim text)
     (if-let [match (re-matches (re-pattern (str (cmd-prefix config) "(.*)")) text)]
       (trim (second match))
       nil)))
+
+(defn matches-regexp [matcher text]
+  (prn matcher text)
+  (if matcher
+    (if (re-matches matcher text)
+      true
+      false)
+    false))
 
 (defn- privmsg-callback
   [world raw-irc {:keys [nick text target] :as data}]
@@ -56,9 +62,15 @@
                    nick
                    target)]
     (if-let [command (parse-command world text target)]
-      (put! (:in world) {:cmd      command
-                         :from-nick     nick
-                         :reply-to reply-to}))))
+      (put! (:in world) {:type      :command
+                         :value     command
+                         :from-nick nick
+                         :reply-to  reply-to}))
+    (if (matches-regexp (get-in world [:config :matcher]) text)
+      (put! (:in world) {:type      :match
+                         :value     text
+                         :from-nick nick
+                         :reply-to  reply-to}))))
 
 (defn send-message! "send a message to a target nick or channel, via current botty world"
   [world target message]
@@ -105,17 +117,23 @@
   (broadcast-message! world "tick")
   world)
 
-(defn default-on-command [world {:keys [cmd from-nick reply-to] :as payload}]
-  (let [botname (the-botname world)]
-    (case (clojure.string/trim cmd)
-      "quit" (do
-               (broadcast-message! world (str botname " killed by request from " from-nick))
-               (quit! world (str botname " killed by request from " from-nick)))
-      "help" (send-message! world reply-to (str
-                                             "send message via '" botname ":cmd' or /msg " botname " 'cmd'\n"
-                                             "commands: 'help' and 'quit' only!"))
-      (send-message! world reply-to (str "Unknown command:" cmd " - try 'help'"))))
-  world)
+(defn default-on-command [world {:keys [type value from-nick reply-to] :as payload}]
+  (case type
+    :command
+    (let [botname (the-botname world)]
+      (case (clojure.string/trim value)
+        "quit" (do
+                 (broadcast-message! world (str botname " killed by request from " from-nick))
+                 (quit! world (str botname " killed by request from " from-nick)))
+        "help" (send-message! world reply-to (str
+                                               "send message via '" botname ":cmd' or /msg " botname " 'cmd'\n"
+                                               "commands: 'help' and 'quit' only!"))
+        (send-message! world reply-to (str "Unknown command:" value " - try 'help'")))
+      world)
+    :match
+    (do
+      (broadcast-message! world "You found the secret word!")
+      world)))
 
 (def default-callbacks
   {:on-tick default-on-tick
@@ -154,6 +172,7 @@
    :ircport 6667
    :channels ["#general"]
    :tick-ms 10000
+   :matcher #".*duck.*"
    })
 
 (comment "for repling"
