@@ -47,7 +47,6 @@
       nil)))
 
 (defn matches-regexp [matcher text]
-  (prn matcher text)
   (if matcher
     (if (re-matches matcher text)
       true
