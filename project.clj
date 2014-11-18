@@ -1,4 +1,4 @@
-(defproject com.sietsma.korny/botty "0.1.1"
+(defproject com.sietsma.korny/botty "0.1.2"
   :description "Basic IRC bot library for simple bots"
   :url "http://github.com/korny/botty"
   :license {:name "Eclipse Public License"

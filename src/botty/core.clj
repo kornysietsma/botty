@@ -48,7 +48,7 @@
 
 (defn matches-regexp [matcher text]
   (if matcher
-    (if (re-matches matcher text)
+    (if (re-matches (re-pattern matcher) text)
       true
       false)
     false))
@@ -171,7 +171,7 @@
    :ircport 6667
    :channels ["#general"]
    :tick-ms 10000
-   :matcher #".*duck.*"
+   :matcher ".*duck.*"
    })
 
 (comment "for repling"

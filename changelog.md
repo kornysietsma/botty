@@ -1,0 +1,1 @@
+version 0.1.2 - use strings not regexps in config - turns out edn can't do regexps
