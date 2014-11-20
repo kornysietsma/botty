@@ -152,7 +152,8 @@
 (defn irc-loop
   "core.async based main loop - returns a killer channel you can put! to to kill the bot, or wait for close to handle death" [initial-config callbacks]
   (let [in (chan)
-        killer (chan)]
+        killer (chan)
+        wait-for-exit-fn (fn [] (<!! killer))]
     (go-loop [world (connect initial-config callbacks in killer)]
       (alt!
         in ([command]
@@ -161,7 +162,7 @@
                            (irclj/quit (:connection world))
                            (println "die:" reason)))
         (timeout (get-in world [:config :tick-ms])) (recur (irc-tick world))))
-    killer))
+    wait-for-exit-fn))
 
 
 (def local-test-config
@@ -180,7 +181,7 @@
 )
 
 (defn -main [& args]
-  (let [killer (irc-loop local-test-config {})]
+  (let [wait-for-exit-fn (irc-loop local-test-config {})]
     (prn "default test botty running - waiting to die.")
-    (<!! killer)
+    (wait-for-exit-fn)
     (prn "done!")))
